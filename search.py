@@ -49,17 +49,19 @@ def process_images(folder_path):
         for filename in os.listdir(folder_path):
             if filename.lower().endswith(SUPPORTED_FORMATS):
                 print(f"Processing {filename}...")
-                futures.append(executor.submit(upload_image, os.path.join(folder_path, filename)))
+                future = executor.submit(upload_image, os.path.join(folder_path, filename))
+                futures.append((filename, future))
         
-        for future in concurrent.futures.as_completed(futures):
+        for filename, future in futures:
             image_url = future.result()
             if image_url:
                 thumbnails, links = google_lens_search(image_url)
-                data.append(thumbnails + links)
+                data.append([filename] + thumbnails + links)
             else:
-                data.append(["Upload failed"] * 20)
-                
-    column_names = [f"Thumbnail {i+1}" for i in range(10)] + [f"Link {i+1}" for i in range(10)]
+                data.append([filename] + ["Upload failed"] * 20)  # 10 for thumbnails and 10 for links
+
+    # Create column names for thumbnails and links
+    column_names = ['Filename'] + [f"Thumbnail {i+1}" for i in range(10)] + [f"Link {i+1}" for i in range(10)]
     df = pd.DataFrame(data, columns=column_names)
     df.to_excel('results.xlsx', index=False)
     print("All images processed and results are saved to results.xlsx.")

@@ -3,7 +3,11 @@ import requests
 import pandas as pd
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
+import concurrent.futures
+
 load_dotenv()
+
+SUPPORTED_FORMATS = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')
 
 def upload_image(image_path):
     """Upload an image to ImgBB and return the URL."""
@@ -39,10 +43,15 @@ def google_lens_search(image_url):
 def process_images(folder_path):
     """Process images in the given folder and save the results to an Excel file."""
     thumbnails, links = [], []
-    for filename in os.listdir(folder_path):
-        if filename.lower().endswith(('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp' )):
-            print(f"Processing {filename}...")
-            image_url = upload_image(os.path.join(folder_path, filename))
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        futures = []
+        for filename in os.listdir(folder_path):
+            if filename.lower().endswith(SUPPORTED_FORMATS):
+                print(f"Processing {filename}...")
+                futures.append(executor.submit(upload_image, os.path.join(folder_path, filename)))
+        
+        for future in concurrent.futures.as_completed(futures):
+            image_url = future.result()
             if image_url:
                 th, ln = google_lens_search(image_url)
                 thumbnails.append(th)

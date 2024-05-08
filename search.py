@@ -1,5 +1,4 @@
 from google_images_search import GoogleImagesSearch
-import pandas as pd
 
 gis = GoogleImagesSearch('AIzaSyDMNHmTDePsJV7gjktX8Z7ak20OoHlhob4', '24b94c30a21744459')
 

@@ -34,15 +34,16 @@ def google_lens_search(image_url):
             "api_key": os.getenv('SERPAPI_KEY')
         })
         results = search.get_dict()
-        return [match.get("thumbnail") for match in results.get("visual_matches", [])[:10]], \
-               [match.get("link") for match in results.get("visual_matches", [])[:10]]
+        thumbnails = [match.get("thumbnail") for match in results.get("visual_matches", [])[:10]]
+        links = [match.get("link") for match in results.get("visual_matches", [])[:10]]
+        return thumbnails, links
     except Exception as e:
         print(f"Google Lens search failed: {e}")
         return [], []
 
 def process_images(folder_path):
     """Process images in the given folder and save the results to an Excel file."""
-    thumbnails, links = [], []
+    data = []
     with concurrent.futures.ThreadPoolExecutor() as executor:
         futures = []
         for filename in os.listdir(folder_path):
@@ -53,17 +54,13 @@ def process_images(folder_path):
         for future in concurrent.futures.as_completed(futures):
             image_url = future.result()
             if image_url:
-                th, ln = google_lens_search(image_url)
-                thumbnails.append(th)
-                links.append(", ".join(ln))
+                thumbnails, links = google_lens_search(image_url)
+                data.append(thumbnails + links)
             else:
-                thumbnails.append("Upload failed")
-                links.append("")
-
-    df = pd.DataFrame({
-        "Thumbnails": thumbnails,
-        "Links": links
-    })
+                data.append(["Upload failed"] * 20)
+                
+    column_names = [f"Thumbnail {i+1}" for i in range(10)] + [f"Link {i+1}" for i in range(10)]
+    df = pd.DataFrame(data, columns=column_names)
     df.to_excel('results.xlsx', index=False)
     print("All images processed and results are saved to results.xlsx.")
 

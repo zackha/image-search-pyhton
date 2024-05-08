@@ -8,6 +8,7 @@ import concurrent.futures
 load_dotenv()
 
 SUPPORTED_FORMATS = ('.png', '.jpg', '.jpeg', '.gif', '.bmp', '.webp')
+MAX_RESULTS = 20
 
 def upload_image(image_path):
     """Upload an image to ImgBB and return the URL."""
@@ -34,8 +35,8 @@ def google_lens_search(image_url):
             "api_key": os.getenv('SERPAPI_KEY')
         })
         results = search.get_dict()
-        thumbnails = [match.get("thumbnail") for match in results.get("visual_matches", [])[:10]]
-        links = [match.get("link") for match in results.get("visual_matches", [])[:10]]
+        thumbnails = [match.get("thumbnail") for match in results.get("visual_matches", [])[:MAX_RESULTS]]
+        links = [match.get("link") for match in results.get("visual_matches", [])[:MAX_RESULTS]]
         return thumbnails, links
     except Exception as e:
         print(f"Google Lens search failed: {e}")
@@ -58,10 +59,10 @@ def process_images(folder_path):
                 thumbnails, links = google_lens_search(image_url)
                 data.append([filename] + thumbnails + links)
             else:
-                data.append([filename] + ["Upload failed"] * 20)  # 10 for thumbnails and 10 for links
+                data.append([filename] + ["Upload failed"] * 2 * MAX_RESULTS)
 
     # Create column names for thumbnails and links
-    column_names = ['Filename'] + [f"Thumbnail {i+1}" for i in range(10)] + [f"Link {i+1}" for i in range(10)]
+    column_names = ['Filename'] + [f"Thumbnail {i+1}" for i in range(MAX_RESULTS)] + [f"Link {i+1}" for i in range(MAX_RESULTS)]
     df = pd.DataFrame(data, columns=column_names)
     df.to_excel('results.xlsx', index=False)
     print("All images processed and results are saved to results.xlsx.")

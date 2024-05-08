@@ -1,4 +1,4 @@
-pip3 install google-images-search pandas openpyxl
+pip3 install google-search-results pandas openpyxl python-dotenv
 
 python3 search.py
 

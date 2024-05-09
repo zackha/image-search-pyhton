@@ -3,7 +3,6 @@ import requests
 import pandas as pd
 from serpapi import GoogleSearch
 from dotenv import load_dotenv
-import concurrent.futures
 
 load_dotenv()
 
@@ -45,16 +44,10 @@ def google_lens_search(image_url):
 def process_images(folder_path):
     """Process images in the given folder and save the results to an Excel file."""
     data = []
-    with concurrent.futures.ThreadPoolExecutor() as executor:
-        futures = []
-        for filename in os.listdir(folder_path):
-            if filename.lower().endswith(SUPPORTED_FORMATS):
-                print(f"Processing {filename}...")
-                future = executor.submit(upload_image, os.path.join(folder_path, filename))
-                futures.append((filename, future))
-        
-        for filename, future in futures:
-            image_url = future.result()
+    for filename in os.listdir(folder_path):
+        if filename.lower().endswith(SUPPORTED_FORMATS):
+            print(f"Processing {filename}...")
+            image_url = upload_image(os.path.join(folder_path, filename))
             if image_url:
                 thumbnails, links = google_lens_search(image_url)
                 data.append([filename] + thumbnails + links)

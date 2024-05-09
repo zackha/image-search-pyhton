@@ -52,7 +52,7 @@ def process_images(folder_path):
                 thumbnails, links = google_lens_search(image_url)
                 data.append([filename] + thumbnails + links)
             else:
-                data.append([filename] + ["Upload failed"] * 2 * MAX_RESULTS)
+                data.append([filename] + ["Upload failed"] * (2 * MAX_RESULTS))
 
     # Create column names for thumbnails and links
     column_names = ['Filename'] + [f"Thumbnail {i+1}" for i in range(MAX_RESULTS)] + [f"Link {i+1}" for i in range(MAX_RESULTS)]

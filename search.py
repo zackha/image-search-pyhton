@@ -54,7 +54,6 @@ def process_images(folder_path):
             else:
                 data.append([filename] + ["Upload failed"] * (2 * MAX_RESULTS))
 
-    # Create column names for thumbnails and links
     column_names = ['Filename'] + [f"Thumbnail {i+1}" for i in range(MAX_RESULTS)] + [f"Link {i+1}" for i in range(MAX_RESULTS)]
     df = pd.DataFrame(data, columns=column_names)
     df.to_excel('results.xlsx', index=False)
